@@ -23,15 +23,12 @@ Seattle
 Denver
 Washington
 Nashville
-Baltimore
 Louisville
 Portland
 Oklahoma
 Milwaukee
 Las Vegas
 Albuquerque
-Tucson
-Fresno
 Sacramento
 Long Beach
 Kansas
@@ -48,3 +45,6 @@ Minneapolis
 Cleveland
 Wichita
 Arlington
+New Orleans
+Lexington
+Anchorage municipality
