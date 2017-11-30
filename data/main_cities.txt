@@ -1,0 +1,50 @@
+New York
+Los Angeles
+Chicago
+Houston
+Philadelphia
+Phoenix
+San Antonio
+San Diego
+Dallas
+San Jose
+Austin
+Jacksonville
+Indianapolis
+San Francisco
+Columbus
+Fort Worth
+Charlotte
+Detroit
+El Paso
+Memphis
+Boston
+Seattle
+Denver
+Washington
+Nashville
+Baltimore
+Louisville
+Portland
+Oklahoma
+Milwaukee
+Las Vegas
+Albuquerque
+Tucson
+Fresno
+Sacramento
+Long Beach
+Kansas
+Mesa
+Virginia Beach
+Atlanta
+Colorado Springs
+Raleigh
+Omaha
+Miami
+Oakland
+Tulsa
+Minneapolis
+Cleveland
+Wichita
+Arlington
