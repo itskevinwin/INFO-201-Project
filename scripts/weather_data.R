@@ -80,10 +80,10 @@ ProcessResponse <- function(response) {
     rain = FetchValue(response$rain$rain.3h),
     snow = FetchValue(response$snow$snow.3h),
     cloudiness = FetchValue(response$clouds$all),
-    time = FetchValue(AdjustTime(response$dt)),
+    time = AdjustTime(response$dt),
     country = FetchValue(response$sys$country),
-    sunrise = FetchValue(AdjustTime(response$sys$sunrise)),
-    sunset = FetchValue(AdjustTime(response$sys$sunset)),
+    sunrise = AdjustTime(response$sys$sunrise),
+    sunset = AdjustTime(response$sys$sunset),
     city = FetchValue(response$name)
   ))
 }
