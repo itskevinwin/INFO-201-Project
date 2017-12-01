@@ -3,6 +3,7 @@
 library(jsonlite)
 library(dplyr)
 library(httr)
+library(plotly)
 
 # Source api key
 source('scripts/api_key.R')
@@ -83,7 +84,7 @@ ProcessResponse <- function(response) {
     time = AdjustTime(response$dt),
     country = FetchValue(response$sys$country),
     sunrise = AdjustTime(response$sys$sunrise),
-    sunset = AdjustTime(response$sys$sunset),
-    city = FetchValue(response$name)
+    sunset = AdjustTime(response$sys$sunset)
   ))
 }
+
