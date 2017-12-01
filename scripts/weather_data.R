@@ -18,7 +18,7 @@ AdjustTime <- function(str) {
 }
 
 ConvertTemp <- function(tmp) {
-  return(tmp * 1.8 + 32)
+  return(1.8 * (tmp - 273) + 32)
 }
 
 CreateMainCitiesDF <- function(cities) {
