@@ -2,20 +2,39 @@
 
 library(shiny)
 
-shinyUI(navbarPage('Electoral College',
-                   # Create a tab panel for your map
-                   tabPanel('Map',
-                            titlePanel('Electoral College Votes'),
-                            # Create sidebar layout
-                            sidebarLayout(
-                              
-                              # Side panel for controls
-                              sidebarPanel(
-                                
-                                # Input to select variable to map
-                                selectInput('mapvar', label = 'Variable to Map', choices = list("Population" = 'population', 'Electoral Votes' = 'votes', 'Votes / Population' = 'ratio'))
-                              ),
-                              mainPanel()
-                            )
-                   ) 
+shinyUI(navbarPage(
+  'US Current Weather App',
+  tabPanel(
+    'Main Cities Map',
+    titlePanel('US Main Cities Weather Map'),
+    sidebarLayout(
+      sidebarPanel(
+        selectInput(
+          "filter.by",
+          label = h3("Filter By"), 
+          choices = list(
+            "Temperature" = "temp",
+            "Max Temperature" = "temp.max",
+            "Min Temperature" = "temp.min",
+            "Pressure" = "pressure",
+            "Humidity" = "humidity",
+            "Visibility" = "visibility",
+            "Winde Speed" = "wind.speed",
+            "Cloudiness" = "cloudiness"
+          ), 
+          selected = "temp"
+        ),
+        conditionalPanel(
+          "value.range",
+          label = h3("output.label"),
+          min = min,
+          max = max,
+          value = c(50,60)
+        )
+      ),
+      mainPanel(
+            plotOutput("text")
+      )
+    )
+  ) 
 ))

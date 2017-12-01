@@ -14,7 +14,8 @@ main.cities <- read.csv(
 )
 
 AdjustTime <- function(str) {
-  return(as.POSIXct(str, origin="1970-01-01", tz="GMT"))
+  date <- as.POSIXct(str, origin="1970-01-01", tz="GMT") 
+  return(strftime(date, format="%H:%M:%S"))
 }
 
 ConvertTemp <- function(tmp) {
