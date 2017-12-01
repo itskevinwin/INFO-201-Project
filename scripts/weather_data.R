@@ -13,10 +13,12 @@ main.cities <- read.csv(
   stringsAsFactors = FALSE
 )
 
-main.cities.data <- CreateMainCitiesDF(main.cities$main.cities)
-
 AdjustTime <- function(str) {
   return(as.POSIXct(str, origin="1970-01-01", tz="GMT"))
+}
+
+ConvertTemp <- function(tmp) {
+  return(tmp * 1.8 + 32)
 }
 
 CreateMainCitiesDF <- function(cities) {
@@ -69,9 +71,9 @@ ProcessResponse <- function(response) {
     lat = FetchValue(response$coor$lat),
     weather = FetchValue(response$weather$main[1]),
     description = FetchValue(response$weather$description[1]),
-    temp = FetchValue(response$main$temp),
-    temp.min = FetchValue(response$main$temp_min),
-    temp.max = FetchValue(response$main$temp_max),
+    temp = FetchValue(ConvertTemp(response$main$temp)),
+    temp.min = FetchValue(ConvertTemp(response$main$temp_min)),
+    temp.max = FetchValue(ConvertTemp(response$main$temp_max)),
     pressure = FetchValue(response$main$pressure),
     humidity = FetchValue(response$main$humidity),
     visibility = FetchValue(response$visibility),
@@ -86,3 +88,5 @@ ProcessResponse <- function(response) {
     sunset = AdjustTime(response$sys$sunset)
   ))
 }
+
+main.cities.data <- CreateMainCitiesDF(main.cities$main.cities)
