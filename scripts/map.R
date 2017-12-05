@@ -2,22 +2,6 @@ library(plotly)
 library(leaflet)
 source('scripts/weather_data.R')
 
-# give state boundaries a white border
-l <- list(color = toRGB("white"), width = 2)
-# specify some map projection/options
-g <- list(
-  scope = 'usa',
-  projection = list(type = 'albers usa')
-)
-map <- plot_geo(main.cities.data, locationmode = 'USA-states') %>%
-  layout(title = 'Weather of 50 of the Most Populated Cities in the US<br>', geo = g) %>%  
-  add_markers(x = ~lon, y = ~lat, color = ~weather, colors = "Paired", hoverinfo = "text",
-              text = ~paste0("City: ", cities,"<br />Weather: ", main.cities.data$weather, "<br />Description: ", main.cities.data$description,
-                             "<br />Min Temp: ", main.cities.data$temp.min, " F°<br />Temp: ", main.cities.data$temp, " F°<br />Max Temp: ", main.cities.data$temp.max, 
-                             " F°<br />Humidity: ", main.cities.data$humidity, "%<br />Wind Speed: ", main.cities.data$wind.speed,
-                             " mps<br />Pressure: ", main.cities.data$pressure, " hPa", "<br />Sunrise: ", main.cities.data$sunrise, 
-                             " GMT<br />Sunset: ", main.cities.data$sunset, " GMT")) 
-
 GetColor <- function(data) {
   sapply(data$weather, function(weather) {
     if(weather == 'Rain') {
