@@ -21,7 +21,7 @@ AdjustTime <- function(str) {
 }
 
 ConvertTemp <- function(tmp) {
-  return(1.8 * (tmp - 273) + 32)
+  return(1.8 * (tmp) + 32)
 }
 
 CreateMainCitiesDF <- function(cities) {
@@ -42,6 +42,7 @@ FetchResponse <- function(full.uri, params) {
 FetchValue <- function(val) {
   return(ifelse(is.null(val), "Unknown", val))
 }
+
 
 GetCityInfo <- function(q = NULL, lat = NULL, lon = NULL, zip = NULL) {
   base.uri <- 'http://api.openweathermap.org/data/2.5/weather?'
@@ -66,6 +67,7 @@ GetCityInfo <- function(q = NULL, lat = NULL, lon = NULL, zip = NULL) {
     return(ProcessResponse(response))
   }
 }
+
 
 ProcessResponse <- function(response) {
   return(data.frame(
@@ -97,4 +99,20 @@ for (i in 1:len) {
   name <- main.cities[i]
   main.cities.list[name] = name
 }
+
+GetRegionInfo <- function(lat = NULL, lon = NULL) {
+  base.url <- 'http://api.openweathermap.org/data/2.5/box/city?'
+  resource <- paste0('bbox=', lon-2, ",", lat-2, ",", lon+2, ",", lat+2, ",8")
+  endpoint <- paste0(base.url, resource)
+  query.parameters <- list(APPID = weather.key)
+  response <- FetchResponse(endpoint, query.parameters)
+  return(data.frame(
+    name = response$list$name,
+    temperature = ConvertTemp(response$list$main$temp),
+    min.temp = ConvertTemp(response$list$main$temp_min),
+    max.temp = ConvertTemp(response$list$main$temp_max)
+  ))
+}
+
+
 

@@ -69,19 +69,32 @@ shinyUI(navbarPage(
           uiOutput("latf2"),
           uiOutput("lngf2")
         ),
-<<<<<<< HEAD
+#<<<<<<< HEAD
         conditionalPanel(condition = "input.locate == 3", uiOutput("zipf"))
       ),
-=======
+#=======
         conditionalPanel(
           condition = "input.locate == 3", 
           uiOutput("zipf1"),
           uiOutput("zipf2")
       )),
->>>>>>> d9325b8
+#>>>>>>> d9325b8
       mainPanel(
         htmlOutput('text')
       )
+    ),
+    tabPanel(
+      "TEMPERATURE PLOT",
+      titlePanel("Bar Plot Showing Temperature of Nearest Cities"),
+      sidebarLayout(
+        sidebarPanel(
+          numericInput("lat", label = "Enter Latitude", value = 35),
+          numericInput("lng", label = "Enter Longitude", value = -100)
+        ),
+        mainPanel(
+          plotlyOutput("value")
+        )
+      )
     )
   )
-))
+)

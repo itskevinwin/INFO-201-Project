@@ -1,3 +1,8 @@
+library(dplyr)
+library(plotly)
+source('./weather_data.R')
+
+
 GetAttrRange <- function(col) {
   vtr <- main.cities.data %>% .[[col]]
   return(list(
@@ -9,6 +14,12 @@ GetAttrRange <- function(col) {
 current <- GetAttrRange('temp')
 
 shinyServer(function(input, output, clientData, session) {
+  output$value <- renderPlotly({
+    result.data <- GetRegionInfo(input$lat, input$lng)
+    makePlot(result.data)
+  })
+  
+  
   output$text <- renderText({
     paste0("
     <link rel='stylesheet' href='https://fonts.googleapis.com/css?family=Tangerine'>
@@ -76,9 +87,9 @@ shinyServer(function(input, output, clientData, session) {
   })
   
   output$leafmap <- renderLeaflet({
-<<<<<<< HEAD
+#<<<<<<< HEAD
     FetchMap(main.cities.data)
-=======
+#=======
     main.cities.filtered <- main.cities.data 
     main.cities.filtered <- main.cities.filtered[
       main.cities.filtered[[input$mainf]] > input$mainr[1],
@@ -88,9 +99,24 @@ shinyServer(function(input, output, clientData, session) {
     ]
     FetchMap(main.cities.filtered)
 
->>>>>>> d9325b8
+#>>>>>>> d9325b8
   })
 })
+
+makePlot <- function(data) {
+  dumbbell.plot <- plot_ly(data, color = I("gray80")) %>%
+    add_segments(x = ~min.temp, xend = ~max.temp, y = ~name, yend = ~name, showlegend = TRUE) %>%
+    add_markers(x = ~min.temp, y = ~name, name = "Minimum Temperature", color = I("blue")) %>%
+    add_markers(x = ~max.temp, y = ~name, name = "Maximum Temperature", color = I("red")) %>%
+    layout(
+      title = "Minimum and Maximum Temperature of Surrounding Areas",
+      xaxis = list(title = "Temperature (Fahrenheit)"),
+      yaxis = list(title = "Cities/Districts/Areas"),
+      margin = list(l = 65)
+    )
+  ggplotly(dumbbell.plot)
+}
+
 
 GetLabel <- function(lab) {
   lab <- case_when(
