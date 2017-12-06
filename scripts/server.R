@@ -8,12 +8,6 @@ shinyServer(function(input, output, clientData, session) {
   observe({
     choice <- input$mainf
     range <- GetAttrRange(choice)
-    
-    main.cities.filtered <- main.cities.data %>% 
-      filter(as.numeric(choice) > as.numeric(range[1]) & 
-               as.numeric(choice) < as.numeric(range[2])
-      )
-    
     updateSliderInput(
       session,
       "mainr",
@@ -54,6 +48,10 @@ shinyServer(function(input, output, clientData, session) {
   })
   
   output$leafmap <- renderLeaflet({
+    main.cities.filtered <- main.cities.data 
+    
+    main.cities.filtered <- main.cities.filtered[main.cities.filtered[[input$mainf]] > input$mainr[1],]
+    main.cities.filtered <- main.cities.filtered[main.cities.filtered[[input$mainf]] < input$mainr[2],]
     
     FetchMap(main.cities.filtered)
   })
@@ -128,19 +126,19 @@ FetchMap <- function(data) {
         label = paste0("City: ", data$cities),
         clusterOptions = markerClusterOptions(),
         popup = paste0(
-          "City: ", main.cities.data$cities,
-          "<br />Weather: ", main.cities.data$weather,
-          "<br />Description: ", main.cities.data$description,
-          "<br />Min Temp: ", main.cities.data$temp.min,
-          " F°<br />Temp: ", main.cities.data$temp,
-          " F°<br />Max Temp: ", main.cities.data$temp.max,
-          " F°<br />Humidity: ", main.cities.data$humidity,
-          "%<br />Cloudiness: ", main.cities.data$cloudiness,
-          "%<br />Wind Speed: ", main.cities.data$wind.speed,
-          " mps<br />Pressure: ", main.cities.data$pressure,
-          " hPa", "<br />Sunrise: ", main.cities.data$sunrise,
-          " GMT<br />Sunset: ", main.cities.data$sunset, " GMT",
-          "<br /> Last Updated: ", main.cities.data$time, " GMT"
+          "City: ", data$cities,
+          "<br />Weather: ", data$weather,
+          "<br />Description: ", data$description,
+          "<br />Min Temp: ", data$temp.min,
+          " F°<br />Temp: ", data$temp,
+          " F°<br />Max Temp: ", data$temp.max,
+          " F°<br />Humidity: ", data$humidity,
+          "%<br />Cloudiness: ", data$cloudiness,
+          "%<br />Wind Speed: ", data$wind.speed,
+          " mps<br />Pressure: ", data$pressure,
+          " hPa", "<br />Sunrise: ", data$sunrise,
+          " GMT<br />Sunset: ", data$sunset, " GMT",
+          "<br /> Last Updated: ", data$time, " GMT"
         )
       )
   )
@@ -153,3 +151,4 @@ GetAttrRange <- function(col) {
     max = vtr %>% max() %>% ceiling()
   ))
 }
+
