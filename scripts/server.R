@@ -1,3 +1,11 @@
+GetAttrRange <- function(col) {
+  vtr <- main.cities.data %>% .[[col]]
+  return(list(
+    min = vtr %>% min() %>% floor(),
+    max = vtr %>% max() %>% ceiling()
+  ))
+}
+
 current <- GetAttrRange('temp')
 
 shinyServer(function(input, output, clientData, session) {
@@ -35,29 +43,52 @@ shinyServer(function(input, output, clientData, session) {
     value = c(current$min, current$max)
   )
   
-  output$cityf <- renderUI({
-    selectInput(
-      "cityf",
-      label = "Select City",
-      choices = main.cities.list,
-      selected = "New York"
-    )
+  output[['cityf1']] <- renderUI({
+    GetSimpleUI('text', 'cityf1', 'Enter 1st City', 'New York')
   })
   
-  output$latf <- renderUI({
-    numericInput("latf", label = "Enter Latitude", value = 50)
+  output[['cityf2']] <- renderUI({
+    GetSimpleUI('text', 'cityf2', 'Enter 2nd City', 'Seattle')
   })
   
-  output$lngf <- renderUI({
-    numericInput("lngf", label = "Enter Longitude", value = 50)
+  output[['latf1']] <- renderUI({
+    GetSimpleUI('numeric', 'latf1', 'Enter 1st Latitude', 50)
   })
   
-  output$zipf <- renderUI({
-    numericInput("zipf", label = "Enter ZIP Code", value = 10008)
+  output[['latf2']] <- renderUI({
+    GetSimpleUI('numeric', 'latf2', 'Enter 2nd Latitude', 50)
+  })
+  
+  output[['lngf1']] <- renderUI({
+    GetSimpleUI('numeric', 'lngf1', 'Enter 1st Longitude', 50)
+  })
+  
+  output[['lngf2']] <- renderUI({
+    GetSimpleUI('numeric', 'lngf2', 'Enter 2nd Longitude', 50)
+  })
+  
+  output[['zipf1']] <- renderUI({
+    GetSimpleUI('numeric', 'zipf1', 'Enter 1st ZIP Code', 10008)
+  })
+  
+  output[['zipf2']] <- renderUI({
+    GetSimpleUI('numeric', 'zipf2', 'Enter 2nd ZIP Code', 10008)
   })
   
   output$leafmap <- renderLeaflet({
+<<<<<<< HEAD
     FetchMap(main.cities.data)
+=======
+    main.cities.filtered <- main.cities.data 
+    main.cities.filtered <- main.cities.filtered[
+      main.cities.filtered[[input$mainf]] > input$mainr[1],
+    ]
+    main.cities.filtered <- main.cities.filtered[
+      main.cities.filtered[[input$mainf]] < input$mainr[2],
+    ]
+    FetchMap(main.cities.filtered)
+
+>>>>>>> d9325b8
   })
 })
 
@@ -93,25 +124,18 @@ Cap <- function(str) {
 
 GetColor <- function(data) {
   sapply(data$weather, function(weather) {
-    if(weather == 'Rain') {
-      "blue"
-    } else if(weather == 'Clouds'){
-      "gray"
-    }else if(weather == 'Clear'){
-      "red"
-    }else if(weather == 'Smoke'){
-      "black"
-    }else if(weather == 'Drizzle'){
-      "green"
-    }else if(weather == "Mist"){
-      "purple"
-    }else if(weather == "Snow"){
-      "white"
-    }else if(weather == "Thunderstorm"){
-      "yellow"
-    }else(
-      "orange"
-    ) })
+    return(case_when(
+      weather == 'Rain' ~ "blue",
+      weather == 'Clouds' ~ "purple",
+      weather == 'Clear' ~ "green",
+      weather == 'Smoke' ~ "orange",
+      weather == 'Drizzle' ~ "cyan",
+      weather == "Mist" ~ "grey",
+      weather == "Snow" ~ "white",
+      weather == "Thunderstorm" ~ "black",
+      TRUE ~ "yellow"
+    ))
+    })
 }
 
 FetchMap <- function(data) {
@@ -130,28 +154,28 @@ FetchMap <- function(data) {
         label = paste0("City: ", data$cities),
         clusterOptions = markerClusterOptions(),
         popup = paste0(
-          "City: ", main.cities.data$cities,
-          "<br />Weather: ", main.cities.data$weather,
-          "<br />Description: ", main.cities.data$description,
-          "<br />Min Temp: ", main.cities.data$temp.min,
-          " F°<br />Temp: ", main.cities.data$temp,
-          " F°<br />Max Temp: ", main.cities.data$temp.max,
-          " F°<br />Humidity: ", main.cities.data$humidity,
-          "%<br />Cloudiness: ", main.cities.data$cloudiness,
-          "%<br />Wind Speed: ", main.cities.data$wind.speed,
-          " mps<br />Pressure: ", main.cities.data$pressure,
-          " hPa", "<br />Sunrise: ", main.cities.data$sunrise,
-          " GMT<br />Sunset: ", main.cities.data$sunset, " GMT",
-          "<br /> Last Updated: ", main.cities.data$time, " GMT"
+          "City: ", data$cities,
+          "<br />Weather: ", data$weather,
+          "<br />Description: ", data$description,
+          "<br />Min Temp: ", data$temp.min,
+          " F°<br />Temp: ", data$temp,
+          " F°<br />Max Temp: ", data$temp.max,
+          " F°<br />Humidity: ", data$humidity,
+          "%<br />Cloudiness: ", data$cloudiness,
+          "%<br />Wind Speed: ", data$wind.speed,
+          " mps<br />Pressure: ", data$pressure,
+          " hPa", "<br />Sunrise: ", data$sunrise,
+          " GMT<br />Sunset: ", data$sunset, " GMT",
+          "<br /> Last Updated: ", data$time, " GMT"
         )
       )
   )
 }
 
-GetAttrRange <- function(col) {
-  vtr <- main.cities.data %>% .[[col]]
-  return(list(
-    min = vtr %>% min() %>% floor(),
-    max = vtr %>% max() %>% ceiling()
-  ))
+GetSimpleUI <- function(ui.name, obj.name, label, value) {
+  if (ui.name == 'numeric') {
+    return(numericInput(obj.name, label = label, value = value))
+  } else {
+    return(textInput(obj.name, label = label, value = value))
+  }
 }
