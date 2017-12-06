@@ -43,8 +43,8 @@ shinyUI(navbarPage(
     )
   ),
   tabPanel(
-    "REPORT",
-    titlePanel("City Weather Report"),
+    "COMPARISON",
+    titlePanel("Weather Comparison Between 2 Cities"),
     sidebarLayout(
       sidebarPanel(
         selectInput(
@@ -57,15 +57,26 @@ shinyUI(navbarPage(
           ),
           selected = 1
         ),
-        conditionalPanel(condition = "input.locate == 1", uiOutput("cityf")),
+        conditionalPanel(
+          condition = "input.locate == 1", 
+          uiOutput("cityf1"),
+          uiOutput("cityf2")
+          ),
         conditionalPanel(
           condition = "input.locate == 2", 
-          uiOutput("latf"),
-          uiOutput("lngf")
+          uiOutput("latf1"),
+          uiOutput("lngf1"),
+          uiOutput("latf2"),
+          uiOutput("lngf2")
         ),
-        conditionalPanel(condition = "input.locate == 3", uiOutput("zipf"))
-      ),
-      mainPanel()
+        conditionalPanel(
+          condition = "input.locate == 3", 
+          uiOutput("zipf1"),
+          uiOutput("zipf2")
+      )),
+      mainPanel(
+        htmlOutput('text')
+      )
     )
   )
 ))
