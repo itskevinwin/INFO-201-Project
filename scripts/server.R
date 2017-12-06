@@ -2,18 +2,21 @@ current <- GetAttrRange('temp')
 
 shinyServer(function(input, output, clientData, session) {
   output$text <- renderText({
-    paste0("hi")
+    paste0("
+    <link rel='stylesheet' href='https://fonts.googleapis.com/css?family=Tangerine'>
+    <style>
+    h1 {
+      color: red;
+      font-family: 'Tangerine', monospace;
+    }
+    </style>
+    <h1>Documentation</h1>
+    ")
   })
   
   observe({
     choice <- input$mainf
     range <- GetAttrRange(choice)
-    
-    main.cities.filtered <- main.cities.data %>% 
-      filter(as.numeric(choice) > as.numeric(range[1]) & 
-               as.numeric(choice) < as.numeric(range[2])
-      )
-    
     updateSliderInput(
       session,
       "mainr",
@@ -54,8 +57,7 @@ shinyServer(function(input, output, clientData, session) {
   })
   
   output$leafmap <- renderLeaflet({
-    
-    FetchMap(main.cities.filtered)
+    FetchMap(main.cities.data)
   })
 })
 

@@ -65,7 +65,9 @@ shinyUI(navbarPage(
         ),
         conditionalPanel(condition = "input.locate == 3", uiOutput("zipf"))
       ),
-      mainPanel()
+      mainPanel(
+        htmlOutput('text')
+      )
     )
   )
 ))
