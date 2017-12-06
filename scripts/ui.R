@@ -1,16 +1,21 @@
 # ui.R file
 
 library(shiny)
+library(shinythemes)
+library(leaflet)
+
+source('./weather_data.R')
 
 shinyUI(navbarPage(
-  'US Current Weather App',
+  theme = shinytheme("flatly"),
+  "US Current Weather App",
   tabPanel(
-    'Main Cities Map',
-    titlePanel('US Main Cities Weather Map'),
+    "MAIN CITIES MAP",
+    titlePanel("US Main Cities Weather Map"),
     sidebarLayout(
       sidebarPanel(
         selectInput(
-          "filter.by",
+          "mainf",
           label = h3("Filter By"), 
           choices = list(
             "Temperature" = "temp",
@@ -19,22 +24,48 @@ shinyUI(navbarPage(
             "Pressure" = "pressure",
             "Humidity" = "humidity",
             "Visibility" = "visibility",
-            "Winde Speed" = "wind.speed",
+            "Wind Speed" = "wind.speed",
             "Cloudiness" = "cloudiness"
           ), 
           selected = "temp"
         ),
-        conditionalPanel(
-          "value.range",
-          label = h3("output.label"),
-          min = min,
-          max = max,
-          value = c(50,60)
+        sliderInput(
+          "mainr",
+          label = "Temperature (°F)",
+          min = 0,
+          max = 100,
+          value = c(30,60)
         )
       ),
       mainPanel(
-            plotOutput("text")
+        leafletOutput("leafmap")
       )
     )
-  ) 
+  ),
+  tabPanel(
+    "REPORT",
+    titlePanel("City Weather Report"),
+    sidebarLayout(
+      sidebarPanel(
+        selectInput(
+          "locate",
+          label = "Locate By",
+          choices = list(
+            "City Name" = 1,
+            "Latitude & Longitude" = 2,
+            "ZIP Code" = 3
+          ),
+          selected = 1
+        ),
+        conditionalPanel(condition = "input.locate == 1", uiOutput("cityf")),
+        conditionalPanel(
+          condition = "input.locate == 2", 
+          uiOutput("latf"),
+          uiOutput("lngf")
+        ),
+        conditionalPanel(condition = "input.locate == 3", uiOutput("zipf"))
+      ),
+      mainPanel()
+    )
+  )
 ))

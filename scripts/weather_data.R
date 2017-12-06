@@ -5,13 +5,15 @@ library(dplyr)
 library(httr)
 
 # Source api key
-source('scripts/api_key.R')
+source('./api_key.R')
 
 # Read in main_cities.csv file
 main.cities <- read.csv(
-  'data/main_cities.csv',
+  '../data/main_cities.csv',
   stringsAsFactors = FALSE
-)
+) %>% .[['main.cities']]
+
+len <- length(main.cities)
 
 AdjustTime <- function(str) {
   date <- as.POSIXct(str, origin="1970-01-01", tz="GMT") 
@@ -23,7 +25,6 @@ ConvertTemp <- function(tmp) {
 }
 
 CreateMainCitiesDF <- function(cities) {
-  len = length(cities)
   cities.df <- GetCityInfo(q = cities[1])
   for (i in 2:len) {
     city = cities[i]
@@ -90,4 +91,9 @@ ProcessResponse <- function(response) {
   ))
 }
 
-main.cities.data <- CreateMainCitiesDF(main.cities$main.cities)
+main.cities.data <- CreateMainCitiesDF(main.cities)
+main.cities.list <- list()
+for (i in 1:len) {
+  name <- main.cities[i]
+  main.cities.list[name] = name
+}
