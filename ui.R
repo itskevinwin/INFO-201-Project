@@ -16,7 +16,7 @@ library(plotly)
 
 shinyUI(navbarPage(
   theme = shinytheme("flatly"),
-  "US Current Weather App",
+  "Current Weather App",
   tabPanel(
     "MAIN CITIES MAP",
     titlePanel("US Main Cities Weather Map"),
