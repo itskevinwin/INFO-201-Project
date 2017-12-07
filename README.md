@@ -1,10 +1,15 @@
 # INFO 201 PROJECT PROPOSAL
 
-Bogdan Tudos<br>
-Kevin Nguyen<br>
+## Team Members
+
 Zetian Chan<br>
+Bogdan Tudos<br>
 Sunny Mishara<br>
+Kevin Nguyen<br>
 Benyamin Boujari
+
+## Application Link
+[https://neuricos.shinyapps.io/info-201-project/](https://neuricos.shinyapps.io/info-201-project/)
 
 ## Project Description
 

@@ -1,0 +1,12 @@
+name: info-201-project
+title: INFO-201-Project
+username:
+account: neuricos
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 245758
+bundleId: 1120806
+url: https://neuricos.shinyapps.io/info-201-project/
+when: 1512644623.54281
+asMultiple: FALSE
+asStatic: FALSE
