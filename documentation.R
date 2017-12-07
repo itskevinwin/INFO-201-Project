@@ -1,3 +1,6 @@
+# documentation.R
+
+# Store the html formatted table of content in variable
 content <- "
 <style>
 li {
@@ -16,6 +19,7 @@ padding-bottom: 10px;
 </ol>
 "
 
+# Store the html formatted documentation in variable
 documentation <- "
 <link href='https://fonts.googleapis.com/css?family=Abril+Fatface|Lora|Playfair+Display' rel='stylesheet'>
 <link href='https://fonts.googleapis.com/icon?family=Material+Icons' rel='stylesheet'>
