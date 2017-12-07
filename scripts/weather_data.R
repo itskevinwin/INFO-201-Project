@@ -7,6 +7,8 @@ library(httr)
 # Source api key
 source('./api_key.R')
 
+source('./documentation.R')
+
 # Read in main_cities.csv file
 main.cities <- read.csv(
   '../data/main_cities.csv',
@@ -22,6 +24,10 @@ AdjustTime <- function(str) {
 
 ConvertTemp <- function(tmp) {
   return(1.8 * (tmp - 273) + 32)
+}
+
+ConvertTempFromCelsius <- function(tmp) {
+  return(1.8 * tmp + 32)
 }
 
 CreateMainCitiesDF <- function(cities) {
@@ -44,31 +50,33 @@ FetchValue <- function(val) {
 }
 
 GetCityInfo <- function(q = NULL, lat = NULL, lon = NULL, zip = NULL) {
-  base.uri <- 'http://api.openweathermap.org/data/2.5/weather?'
+  base.uri <- "http://api.openweathermap.org/data/2.5/weather?"
   query.params <- list(APPID = weather.key)
   response <- NULL
   if (is.null(q) & (is.null(lat) | is.null(lon)) & is.null(zip)) {
-    return('Invalid query parameters')
+    return("Invalid query parameters")
   } else {
     if (!is.null(q)) {
-      response <- FetchResponse(paste0(base.uri, 'q=', q), query.params)
+      response <- FetchResponse(paste0(base.uri, "q=", q), query.params)
     } else if (!is.null(lon) & !is.null(lat)) {
       response <- FetchResponse(
-        paste0(base.uri, 'lat=', lat, '&lon=', lon),
+        paste0(base.uri, "lat=", lat, "&lon=", lon),
         query.params
       )
     } else if (!is.null(zip)) {
-      response <- FetchResponse(
-        paste0(base.uri, 'zip=', zip),
-        query.params
-      )
+      response <- FetchResponse(paste0(base.uri, "zip=", zip), query.params)
     }
-    return(ProcessResponse(response))
+    if (response$cod == "404" | response$cod == "400") {
+      return(NULL)
+    } else {
+      return(ProcessResponse(response))
+    }
   }
 }
 
 ProcessResponse <- function(response) {
   return(data.frame(
+    city = FetchValue(response$name),
     lon = FetchValue(response$coord$lon),
     lat = FetchValue(response$coor$lat),
     weather = FetchValue(response$weather$main[1]),
@@ -87,8 +95,100 @@ ProcessResponse <- function(response) {
     time = AdjustTime(response$dt),
     country = FetchValue(response$sys$country),
     sunrise = AdjustTime(response$sys$sunrise),
-    sunset = AdjustTime(response$sys$sunset)
+    sunset = AdjustTime(response$sys$sunset),
+    stringsAsFactors = FALSE
   ))
+}
+
+CreateSinChartDF <- function(
+  q1 = NULL,
+  q2 = NULL,
+  lat1 = NULL,
+  lat2 = NULL,
+  lon1 = NULL,
+  lon2 = NULL,
+  zip1 = NULL,
+  zip2 = NULL,
+  col
+) {
+  val.1 <- FetchRowCity(q = q1, lat = lat1, lon = lon1, zip = zip1, cols = c(col))
+  val.2 <- FetchRowCity(q = q2, lat = lat2, lon = lon2, zip = zip2, cols = c(col))
+  cities <- c(val.1$city, val.2$city)
+  attr <- c(val.1$row, val.2$row)
+  return(data.frame(cities, attr, stringsAsFactors = FALSE))
+}
+
+CreateMultiChartDF <- function(
+  q1 = NULL,
+  q2 = NULL,
+  lat1 = NULL,
+  lat2 = NULL,
+  lon1 = NULL,
+  lon2 = NULL,
+  zip1 = NULL,
+  zip2 = NULL,
+  type,
+  cols
+) {
+  row.1.df <- FetchRowCity(q = q1, lat = lat1, lon = lon1, zip = zip1, cols = cols)
+  row.2.df <- FetchRowCity(q = q2, lat = lat2, lon = lon2, zip = zip2, cols = cols)
+  row.1 <- row.1.df$row
+  row.2 <- row.2.df$row
+  city.1 <- row.1.df$city
+  city.2 <- row.2.df$city
+  df <- data.frame(type, row.1, row.2, stringsAsFactors = FALSE)
+  colnames(df) <- c("type", city.1, city.2)
+  return(df)
+}
+
+FetchRowCity <- function(q = NULL, lat = NULL, lon = NULL, zip = NULL, cols) {
+  row <- GetCityInfo(q = q, lat = lat, lon = lon, zip = zip)
+  city <- row$city
+  row <- SelectCols(row, cols) %>% unlist(use.names = FALSE)
+  return(list(row = row, city = city))
+}
+
+SelectCols <- function(data, cols) {
+  df <- data[cols[1]]
+  len <- length(cols)
+  if (len > 1) {
+    for (i in 2:len) {
+      df <- cbind(df, data[cols[i]])
+    }
+  }
+  return(df)
+}
+
+GetRegionInfo <- function(lat = NULL, lon = NULL) {
+  base.url <- 'http://api.openweathermap.org/data/2.5/box/city?'
+  range <- 3
+  count <- 8
+  resource <- paste0(
+    'bbox=',
+    lon - range,
+    ",",
+    lat - range,
+    ",",
+    lon + range,
+    ",",
+    lat + range,
+    ",8"
+  )
+  endpoint <- paste0(base.url, resource)
+  query.params <- list(APPID = weather.key)
+  response <- FetchResponse(endpoint, query.params) %>% .[['list']]
+  if (is.null(response)) {
+    return(NULL)
+  } else {
+    return(data.frame(
+      city = response$name,
+      temp = ConvertTempFromCelsius(response$main$temp),
+      min.temp = ConvertTempFromCelsius(response$main$temp_min),
+      max.temp = ConvertTempFromCelsius(response$main$temp_max),
+      humidity = response$main$humidity,
+      wind.speed = response$wind$speed
+    ))
+  }
 }
 
 main.cities.data <- CreateMainCitiesDF(main.cities)
@@ -97,4 +197,3 @@ for (i in 1:len) {
   name <- main.cities[i]
   main.cities.list[name] = name
 }
-
