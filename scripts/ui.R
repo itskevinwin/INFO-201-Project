@@ -1,10 +1,18 @@
 # ui.R file
 
+source('./weather_data.R')
+
 library(shiny)
 library(shinythemes)
 library(leaflet)
+library(plotly)
 
-source('./weather_data.R')
+# Creates the User Interface of the Shiny App. Designs how the app 
+# should respond to user activity in the app. Creates different tabs 
+# in the app for the user to explore and use.
+# Creates widgets that contain the various functionalities of the app
+# and contains conditions on how the app should respons depending on 
+# changes made in the widgets.
 
 shinyUI(navbarPage(
   theme = shinytheme("flatly"),
@@ -69,53 +77,84 @@ shinyUI(navbarPage(
           uiOutput("latf2"),
           uiOutput("lngf2")
         ),
-#<<<<<<< HEAD
-        conditionalPanel(condition = "input.locate == 3", uiOutput("zipf"))
-      ),
-#=======
         conditionalPanel(
           condition = "input.locate == 3", 
           uiOutput("zipf1"),
           uiOutput("zipf2")
       )),
-#>>>>>>> d9325b8
       mainPanel(
-        htmlOutput('text')
-      )
-    ),
-    tabPanel(
-      "REGION",
-      titlePanel("Weather Conditions In Rectangular Zone"),
-      sidebarLayout(
-        sidebarPanel(
-          selectInput(
-            "choose",
-            label = "Select Measurement",
-            choices = list(
-              "Temperature" = 1,
-              "Humidity" = 2,
-              "Wind Speed" = 3
-            ),
-            selected = 1
-          ),
-          numericInput("lat", label = "Enter Latitude", value = 47),
-          numericInput("lng", label = "Enter Longitude", value = -122)
+        htmlOutput("report"),
+        conditionalPanel(
+          condition = "input.locate == 1", 
+          plotlyOutput("CityTempChart"),
+          plotlyOutput("CityPressureChart"),
+          plotlyOutput("CityCloudinessChart"), 
+          plotlyOutput("CityVisibilityChart"),
+          plotlyOutput("CityWindChart")
         ),
-        mainPanel(
-          conditionalPanel(
-            condition = "input.choose == 1",
-            plotlyOutput("temp")
-          ),
-          conditionalPanel(
-            condition = "input.choose == 2",
-            plotlyOutput("humid")
-          ),
-          conditionalPanel(
-            condition = "input.choose == 3",
-            plotlyOutput("wind")
-          )
+        conditionalPanel(
+          condition = "input.locate == 2", 
+          plotlyOutput("CoordinateTempChart"),
+          plotlyOutput("CoordinatePressureChart"), 
+          plotlyOutput("CoordinateCloudinessChart"),
+          plotlyOutput("CoordinateVisibilityChart"), 
+          plotlyOutput("CoordinateWindChart")
+        ),
+        conditionalPanel(
+          condition = "input.locate == 3", 
+          plotlyOutput("ZipTempChart"),
+          plotlyOutput("ZipPressureChart"),
+          plotlyOutput("ZipCloudinessChart"), 
+          plotlyOutput("ZipVisibilityChart"),
+          plotlyOutput("ZipWindChart")
         )
       )
     )
+  ),
+  tabPanel(
+    "REGION",
+    titlePanel("Weather Within A Rectangular Zone"),
+    sidebarLayout(
+      sidebarPanel(
+        selectInput(
+          "choose",
+          label = "Select Measurement",
+          choices = list(
+            "Temperature" = 1,
+            "Humidity" = 2,
+            "Wind Speed" = 3
+          ),
+          selected = 1
+        ),
+        numericInput("lat", label = "Enter Latitude", value = 47),
+        numericInput("lng", label = "Enter Longitude", value = -122)
+      ),
+      mainPanel(
+        conditionalPanel(
+          condition = "input.choose == 1",
+          plotlyOutput("temp")
+        ),
+        conditionalPanel(
+          condition = "input.choose == 2",
+          plotlyOutput("humid")
+        ),
+        conditionalPanel(
+          condition = "input.choose == 3",
+          plotlyOutput("wind")
+        )
+      )
+    )
+  ),
+  tabPanel(
+    "DOCUMENTATION",
+    titlePanel("Documentation Of Weather App"),
+    sidebarLayout(
+      sidebarPanel(
+        htmlOutput('content')
+      ),
+      mainPanel(
+        htmlOutput('text')
+      )
+    )
   )
-)
+))
