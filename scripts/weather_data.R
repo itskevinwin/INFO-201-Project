@@ -21,7 +21,11 @@ AdjustTime <- function(str) {
 }
 
 ConvertTemp <- function(tmp) {
-  return(1.8 * (tmp) + 32)
+  return(1.8 * (tmp-273) + 32)
+}
+
+ConvertTempFromCelsius <- function(tmp) {
+  return (1.8 * tmp + 32)
 }
 
 CreateMainCitiesDF <- function(cities) {
@@ -102,16 +106,34 @@ for (i in 1:len) {
 
 GetRegionInfo <- function(lat = NULL, lon = NULL) {
   base.url <- 'http://api.openweathermap.org/data/2.5/box/city?'
-  resource <- paste0('bbox=', lon-2, ",", lat-2, ",", lon+2, ",", lat+2, ",8")
+  range <- 3
+  count <- 8
+  resource <- paste0(
+    'bbox=',
+    lon - range,
+    ",",
+    lat - range,
+    ",",
+    lon + range,
+    ",",
+    lat + range,
+    ",8"
+  )
   endpoint <- paste0(base.url, resource)
-  query.parameters <- list(APPID = weather.key)
-  response <- FetchResponse(endpoint, query.parameters)
-  return(data.frame(
-    name = response$list$name,
-    temperature = ConvertTemp(response$list$main$temp),
-    min.temp = ConvertTemp(response$list$main$temp_min),
-    max.temp = ConvertTemp(response$list$main$temp_max)
-  ))
+  query.params <- list(APPID = weather.key)
+  response <- FetchResponse(endpoint, query.params) %>% .[['list']]
+  if (is.null(response)) {
+    return(NULL)
+  } else {
+    return(data.frame(
+      city = response$name,
+      temp = ConvertTempFromCelsius(response$main$temp),
+      min.temp = ConvertTempFromCelsius(response$main$temp_min),
+      max.temp = ConvertTempFromCelsius(response$main$temp_max),
+      humidity = response$main$humidity,
+      wind.speed = response$wind$speed
+    ))
+  }
 }
 
 

@@ -84,15 +84,36 @@ shinyUI(navbarPage(
       )
     ),
     tabPanel(
-      "TEMPERATURE PLOT",
-      titlePanel("Bar Plot Showing Temperature of Nearest Cities"),
+      "REGION",
+      titlePanel("Weather Conditions In Rectangle Region"),
       sidebarLayout(
         sidebarPanel(
-          numericInput("lat", label = "Enter Latitude", value = 35),
-          numericInput("lng", label = "Enter Longitude", value = -100)
+          selectInput(
+            "choose",
+            label = "Select Measurement",
+            choices = list(
+              "Temperature" = 1,
+              "Humidity" = 2,
+              "Wind Speed" = 3
+            ),
+            selected = 1
+          ),
+          numericInput("lat", label = "Enter Latitude", value = 47),
+          numericInput("lng", label = "Enter Longitude", value = -122)
         ),
         mainPanel(
-          plotlyOutput("value")
+          conditionalPanel(
+            condition = "input.choose == 1",
+            plotlyOutput("temp")
+          ),
+          conditionalPanel(
+            condition = "input.choose == 2",
+            plotlyOutput("humid")
+          ),
+          conditionalPanel(
+            condition = "input.choose == 3",
+            plotlyOutput("wind")
+          )
         )
       )
     )

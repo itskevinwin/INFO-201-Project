@@ -1,5 +1,6 @@
 library(dplyr)
 library(plotly)
+library(shiny)
 source('./weather_data.R')
 
 
@@ -14,11 +15,30 @@ GetAttrRange <- function(col) {
 current <- GetAttrRange('temp')
 
 shinyServer(function(input, output, clientData, session) {
-  output$value <- renderPlotly({
+
+  output$temp <- renderPlotly({
     result.data <- GetRegionInfo(input$lat, input$lng)
-    makePlot(result.data)
+    validate(
+      need(!is.null(result.data), "No recorded weather data near specified coordinates.")
+    )
+      MakeTempPlot(result.data)
   })
   
+  output$humid <- renderPlotly({
+    result.data <- GetRegionInfo(input$lat, input$lng)
+    validate(
+      need(!is.null(result.data), "No recorded weather data near specified coordinates.")
+    )
+    MakeHumidPlot(result.data)
+  })
+  
+  output$wind <- renderPlotly({
+    result.data <- GetRegionInfo(input$lat, input$lng)
+    validate(
+      need(!is.null(result.data), "No recorded weather data near specified coordinates.")
+    )
+    MakeWindPlot(result.data)
+  })
   
   output$text <- renderText({
     paste0("
@@ -103,20 +123,49 @@ shinyServer(function(input, output, clientData, session) {
   })
 })
 
-makePlot <- function(data) {
-  dumbbell.plot <- plot_ly(data, color = I("gray80")) %>%
-    add_segments(x = ~min.temp, xend = ~max.temp, y = ~name, yend = ~name, showlegend = TRUE) %>%
-    add_markers(x = ~min.temp, y = ~name, name = "Minimum Temperature", color = I("blue")) %>%
-    add_markers(x = ~max.temp, y = ~name, name = "Maximum Temperature", color = I("red")) %>%
+MakeTempPlot <- function(data) {
+  bar.plot <- plot_ly(data, x = ~temp, y = ~city, type = 'bar', name = 'Current Temperature',
+                      marker = list(color = '#b1de00')) %>%
+    add_trace(x = ~min.temp, name = 'Minimum Temperature of the Day', marker = list(color = '#468902')) %>%
+    add_trace(x = ~max.temp, name = 'Maximum Temperature of the Day', marker = list(color = '#133954')) %>%
     layout(
-      title = "Minimum and Maximum Temperature of Surrounding Areas",
+      height = 1000,
+      width = 800,
+      title = "Current Temperature of Surrounding Areas",
       xaxis = list(title = "Temperature (Fahrenheit)"),
       yaxis = list(title = "Cities/Districts/Areas"),
-      margin = list(l = 65)
-    )
-  ggplotly(dumbbell.plot)
+      margin = list(l = 140, t=50, b=20), 
+      barmode = 'group')
+  ggplotly(bar.plot)
 }
 
+MakeHumidPlot <- function(data) {
+  wind.plot <- plot_ly(data, x = ~humidity, y = ~city, type = 'bar', name = 'Current Humidity',
+                       marker = list(color = '#60ccd9')) %>%
+    layout(
+      height = 1000,
+      width = 800,
+      title = "Current Humidity for Surrounding Areas",
+      xaxis = list(title = "Current Humidity (%)"),
+      yaxis = list(title = "Cities/Districts/Areas"),
+      margin = list(l = 140, t=50, b=20) 
+      )
+  ggplotly(wind.plot)
+}
+
+MakeWindPlot <- function(data) {
+  wind.plot <- plot_ly(data, x = ~wind.speed, y = ~city, type = 'bar', name = 'Current Wind Speed',
+                       marker = list(color = '#17d39e')) %>%
+    layout(
+      height = 1000,
+      width = 800,
+      title = "Current Wind Speed for Surrounding Areas",
+      xaxis = list(title = "Wind Speed (miles/second)"),
+      yaxis = list(title = "Cities/Districts/Areas"),
+      margin = list(l = 140, t=50, b=20)
+      )
+  ggplotly(wind.plot)
+}
 
 GetLabel <- function(lab) {
   lab <- case_when(
@@ -161,7 +210,7 @@ GetColor <- function(data) {
       weather == "Thunderstorm" ~ "black",
       TRUE ~ "yellow"
     ))
-    })
+  })
 }
 
 FetchMap <- function(data) {
