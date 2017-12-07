@@ -1,5 +1,12 @@
 # ui.R file
 
+# Creates the User Interface of the Shiny App. Designs how the app 
+# should respond to user activity in the app. Creates different tabs 
+# in the app for the user to explore and use.
+# Creates widgets that contain the various functionalities of the app
+# and contains conditions on how the app should respons depending on 
+# changes made in the widgets.
+
 source('./weather_data.R')
 
 library(shiny)

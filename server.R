@@ -1,7 +1,12 @@
+# server.R file 
+
+# If the column of a specifc row is unknown, then strip that row from the data frame
 StripUnknown <- function(data, col) {
   return(data[data[[col]] != 'Unknown',])
 }
 
+# Get the min and max of the differnt attribues used in the slider for the interactive
+# map on tab 1
 GetAttrRange <- function(col) {
   vtr <- main.cities.data %>% StripUnknown(col) %>% .[[col]] %>% as.numeric()
   return(list(
@@ -10,18 +15,26 @@ GetAttrRange <- function(col) {
   ))
 }
 
+# Get the current range of the temperature used for the interactive map
 current <- GetAttrRange('temp')
 warning.msg <- "No recorded weather data near specified coordinates."
 
+# Creates Shiny Server to use with UI. Sets all outputs used in UI 
+# to display to the user
 shinyServer(function(input, output, clientData, session) {
+  
+  # Sets output text used for documentation
   output$text <- renderText({
     documentation
   })
   
+  # Sets output content for the content table used in the documentation
   output$content <- renderText({
     content
   })
   
+  # Creates slider that changes its range based on user choice of weather 
+  # information they would like to see on the map
   observe({
     choice <- input$mainf
     range <- GetAttrRange(choice)
@@ -35,6 +48,8 @@ shinyServer(function(input, output, clientData, session) {
     )
   })
   
+  # Create slider input that adjusts its values based on min and max of user 
+  # chosen attribute
   updateSliderInput(
     session,
     "mainr",
@@ -43,78 +58,103 @@ shinyServer(function(input, output, clientData, session) {
     value = c(current$min, current$max)
   )
   
+  #### User Input For Tab 2 (Comparison) ####
+  
+  # User input city one
   output[['cityf1']] <- renderUI({
     GetSimpleUI('text', 'cityf1', 'Enter 1st City', 'New York')
   })
   
+  # User input city two
   output[['cityf2']] <- renderUI({
     GetSimpleUI('text', 'cityf2', 'Enter 2nd City', 'Seattle')
   })
   
+  # User input latitude one
   output[['latf1']] <- renderUI({
     GetSimpleUI('numeric', 'latf1', 'Enter 1st Latitude', 47.6062)
   })
   
+  # User input latitude two
   output[['latf2']] <- renderUI({
     GetSimpleUI('numeric', 'latf2', 'Enter 2nd Latitude', 34.0522)
   })
   
+  # User input longitude one
   output[['lngf1']] <- renderUI({
     GetSimpleUI('numeric', 'lngf1', 'Enter 1st Longitude', -122.3321)
   })
   
+  # User input longitude two
   output[['lngf2']] <- renderUI({
     GetSimpleUI('numeric', 'lngf2', 'Enter 2nd Longitude', -118.2437)
   })
   
+  # User input zip code one
   output[['zipf1']] <- renderUI({
     GetSimpleUI('numeric', 'zipf1', 'Enter 1st ZIP Code', 98105)
   })
   
+  # User input zip code two
   output[['zipf2']] <- renderUI({
     GetSimpleUI('numeric', 'zipf2', 'Enter 2nd ZIP Code', 10008)
   })
   
+  # Set output for the interactive map displayed on tab 1
   output$leafmap <- renderLeaflet({
     col <- input$mainf
     filtered <- StripUnknown(main.cities.data, col)
     filtered[[col]] <- as.numeric(as.character(filtered[[col]]))
     filtered <- filtered[
       filtered[[col]] >= input$mainr[1],
-    ]
+      ]
     filtered <- filtered[
       filtered[[col]] <= input$mainr[2],
-    ]
+      ]
     FetchMap(filtered)
   })
   
   # Comparison report used for writing a dynamic paragraph that compares the
-  # weather in two cities
+  # weather in user input locations
   output$report <- renderText({
     city.one <- NULL
     city.two <- NULL
-    if (input$locate == 1) {
+    if (input$locate == 1) { # User inpt cities
       city.one <- GetCityInfo(q = input$cityf1)
       city.two <- GetCityInfo(q = input$cityf2)
-    } else if (input$locate == 2) {
+    } else if (input$locate == 2) { # User input coordinates
       city.one <- GetCityInfo(lat = input$latf1, lon = input$lngf1)
       city.two <- GetCityInfo(lat = input$latf2, lon = input$lngf2)
-    } else {
+    } else { # User input zip codes
       city.one <- GetCityInfo(zip = input$zipf1)
       city.two <- GetCityInfo(zip = input$zipf2)
     }
-    MakeReport(city.one, city.two)
+    
+    # Use MakeReport function to create dynamically changing paragraph
+    MakeReport(city.one, city.two) 
   })
   
-  # Search by city: Temperature chart
+  ##### Search by city: #####
+  
+  # Charts created with user input of two different (or the same) cities to compare
+  # quantitative information
+  
+  # Temperature chart comparing two cities by current, min, and max temperature
   output$CityTempChart <- renderPlotly({
+    
+    # Use CreateMultiChartDF function to get a data frame of information
+    # which is used to make a bar graph with peices of data to compare
     cities.data <- CreateMultiChartDF(
       q1 = input$cityf1,
       q2 = input$cityf2,
       type = c("Low", "Current", "High"),
       cols = c("temp.min", "temp", "temp.max")
     )
-    MakeMultiGraph(
+    
+    # Use MakeMultiGraph function to create a bar graph comparing 
+    # two cities by current temperature, minimum temperature, and maximum
+    # temperature for the day
+    MakeMultiGraph(                   
       cities.data,
       "#385d8b",
       "#9ad044",
@@ -125,19 +165,22 @@ shinyServer(function(input, output, clientData, session) {
     )
   })
   
-  # shiny::validate( need(!is.null(cities.data), 'No recorded weather data near
-  # specified coordinates.') )
-  
-  # Pressure Chart
+  # Pressure Chart comparing air pressure in two cities
   output$CityPressureChart <- renderPlotly({
+    
+    # Use CreateSinChart to create a data frame needed for a graph with one
+    # piece of data to compare between two cities
     cities.data <- CreateSinChartDF(
       q1 = input$cityf1,
       q2 = input$cityf2,
       col = c("pressure")
     )
+    
+    # Use shiny validate to make sure that when errors are thrown, our own response 
+    # will be generated to guide the user to fixing his input
     shiny::validate(
       need(!is.null(cities.data),
-           "No recorded weather data near specified coordinates.")
+           warning.msg)
     )
     colnames(cities.data) <- c("Cities", "Pressure")
     MakeSinGraph(
@@ -149,7 +192,7 @@ shinyServer(function(input, output, clientData, session) {
     )  
   })
   
-  # Humidity vs cloudity
+  # Humidity vs cloudiness chart comparing percentage of humidity and cloudiness in both cities
   output$CityCloudinessChart <- renderPlotly({
     cities.data <- CreateMultiChartDF(
       q1 = input$cityf1,
@@ -159,7 +202,7 @@ shinyServer(function(input, output, clientData, session) {
     )
     shiny::validate(
       need(!is.null(cities.data),
-           "No recorded weather data near specified coordinates.")
+           warning.msg)
     )
     MakeMultiGraph(
       cities.data,
@@ -172,7 +215,8 @@ shinyServer(function(input, output, clientData, session) {
     )  
   })
   
-  # Visibility Chart
+  # Visibility Chart comparing the visibility in meters within two different cities 
+  # (aka fog can make visibility worse for example)
   output$CityVisibilityChart <- renderPlotly({
     cities.data <- CreateSinChartDF(
       q1 = input$cityf1,
@@ -181,7 +225,7 @@ shinyServer(function(input, output, clientData, session) {
     )
     shiny::validate(
       need(!is.null(cities.data),
-           "No recorded weather data near specified coordinates.")
+           warning.msg)
     )
     colnames(cities.data) <- c("Cities", "Visibility")
     MakeSinGraph(
@@ -193,7 +237,7 @@ shinyServer(function(input, output, clientData, session) {
     )  
   })
   
-  # Wind speed Chart
+  # Wind Speed Chart shows the wind speed in two cities in meters per second
   output$CityWindChart <- renderPlotly({
     cities.data <- CreateSinChartDF(
       q1 = input$cityf1,
@@ -202,7 +246,7 @@ shinyServer(function(input, output, clientData, session) {
     )
     shiny::validate(
       need(!is.null(cities.data),
-           "No recorded weather data near specified coordinates.")
+           warning.msg)
     )
     colnames(cities.data) <- c("Cities", "Wind Speed")
     MakeSinGraph(
@@ -214,7 +258,12 @@ shinyServer(function(input, output, clientData, session) {
     )  
   })
   
-  # Search by coordinates: Temperature chart
+  #### Search by coordinates: ####
+  
+  # Same Charts as above, just using different user input. This time they are made by 
+  # user input coordinates of longitude and latitude.
+  
+  # Temperature chart
   output$CoordinateTempChart <- renderPlotly({
     cities.data <- CreateMultiChartDF(
       lat1 = input$latf1,
@@ -226,7 +275,7 @@ shinyServer(function(input, output, clientData, session) {
     )
     shiny::validate(
       need(!is.null(cities.data),
-           "No recorded weather data near specified coordinates.")
+           warning.msg)
     )
     coord.col.names <- colnames(cities.data)
     MakeMultiGraph(
@@ -251,7 +300,7 @@ shinyServer(function(input, output, clientData, session) {
     )
     shiny::validate(
       need(!is.null(cities.data),
-           "No recorded weather data near specified coordinates.")
+           warning.msg)
     )
     colnames(cities.data) <- c("Cities", "Pressure")
     MakeSinGraph(
@@ -275,7 +324,7 @@ shinyServer(function(input, output, clientData, session) {
     )
     shiny::validate(
       need(!is.null(cities.data),
-           "No recorded weather data near specified coordinates.")
+           warning.msg)
     )
     coord.col.names <- colnames(cities.data)
     MakeMultiGraph(
@@ -300,7 +349,7 @@ shinyServer(function(input, output, clientData, session) {
     )
     shiny::validate(
       need(!is.null(cities.data),
-           "No recorded weather data near specified coordinates.")
+           warning.msg)
     )
     colnames(cities.data) <- c("Cities", "Visibility")
     MakeSinGraph(
@@ -323,7 +372,7 @@ shinyServer(function(input, output, clientData, session) {
     )
     shiny::validate(
       need(!is.null(cities.data),
-           "No recorded weather data near specified coordinates.")
+           warning.msg)
     )
     colnames(cities.data) <- c("Cities", "Wind Speed")
     MakeSinGraph(
@@ -335,7 +384,11 @@ shinyServer(function(input, output, clientData, session) {
     )  
   })
   
-  # Search by Zip Temperature chart
+  #### Search by Zip Code: ####
+  
+  # Create comparison charts by using user input of two differnt zip codes.
+  
+  # Temperature chart
   output$ZipTempChart <- renderPlotly({
     cities.data <- CreateMultiChartDF(
       zip1 = input$zipf1,
@@ -345,7 +398,7 @@ shinyServer(function(input, output, clientData, session) {
     )
     shiny::validate(
       need(!is.null(cities.data),
-           "No recorded weather data near specified coordinates.")
+           warning.msg)
     )
     zip.col.names <- colnames(cities.data)
     MakeMultiGraph(
@@ -368,7 +421,7 @@ shinyServer(function(input, output, clientData, session) {
     )
     shiny::validate(
       need(!is.null(cities.data),
-           "No recorded weather data near specified coordinates.")
+           warning.msg)
     )
     colnames(cities.data) <- c("Cities", "Air Pressure")
     MakeSinGraph(
@@ -390,7 +443,7 @@ shinyServer(function(input, output, clientData, session) {
     )
     shiny::validate(
       need(!is.null(cities.data),
-           "No recorded weather data near specified coordinates.")
+           warning.msg)
     )
     zip.col.names <- colnames(cities.data)
     MakeMultiGraph(
@@ -413,7 +466,7 @@ shinyServer(function(input, output, clientData, session) {
     )
     shiny::validate(
       need(!is.null(cities.data),
-           "No recorded weather data near specified coordinates.")
+           warning.msg)
     )
     colnames(cities.data) <- c("Cities", "Visibility")
     MakeSinGraph(
@@ -434,7 +487,7 @@ shinyServer(function(input, output, clientData, session) {
     )
     shiny::validate(
       need(!is.null(cities.data),
-           "No recorded weather data near specified coordinates.")
+           warning.msg)
     )
     colnames(cities.data) <- c("Cities", "Wind Speed")
     MakeSinGraph(
@@ -446,6 +499,9 @@ shinyServer(function(input, output, clientData, session) {
     )
   })
   
+  # Constantly checks if the user has selected the "Wind Speed"
+  # option. Calls the API requst function in order to create the 
+  # Temperature graph.
   output$temp <- renderPlotly({
     result.data <- GetRegionInfo(input$lat, input$lng)
     shiny::validate(
@@ -454,6 +510,9 @@ shinyServer(function(input, output, clientData, session) {
     MakeTempPlot(result.data)
   })
   
+  # Constantly checks if the user has selected the "Humidity"
+  # option. Calls the API requst function in order to create the 
+  # humidity graph.
   output$humid <- renderPlotly({
     result.data <- GetRegionInfo(input$lat, input$lng)
     shiny::validate(
@@ -462,6 +521,9 @@ shinyServer(function(input, output, clientData, session) {
     MakeHumidPlot(result.data)
   })
   
+  # Constantly checks if the user has selected the "Wind Speed"
+  # option. Calls the API requst function in order to create the 
+  # wind speed graph.
   output$wind <- renderPlotly({
     result.data <- GetRegionInfo(input$lat, input$lng)
     shiny::validate(
@@ -471,6 +533,8 @@ shinyServer(function(input, output, clientData, session) {
   })
 })
 
+# Takes a column name and returns a normalized name and also adds the 
+# corresponding unit to it. (Ex: "temp" becomes "Temperature (°F)")
 GetLabel <- function(lab) {
   lab <- case_when(
     lab == 'temp' ~ 'Temperature',
@@ -491,6 +555,7 @@ GetLabel <- function(lab) {
   )
 }
 
+# Capitalizes the first letter in a string
 Cap <- function(str) {
   str <- str %>% gsub('[.]', ' ', .) %>% strsplit(' ') %>% .[[1]]
   paste(
@@ -501,6 +566,7 @@ Cap <- function(str) {
   )
 }
 
+# Sets the color of different weather types for use on map points
 GetColor <- function(data) {
   sapply(data$weather, function(weather) {
     return(case_when(
@@ -514,9 +580,10 @@ GetColor <- function(data) {
       weather == "Thunderstorm" ~ "black",
       TRUE ~ "yellow"
     ))
-    })
+  })
 }
 
+# Creates an interactive map to use for tab 1
 FetchMap <- function(data) {
   icons <- awesomeIcons(
     icon = 'ios-close',
@@ -552,6 +619,7 @@ FetchMap <- function(data) {
   )
 }
 
+# Simplifies the process of creating widgets in tab 2 (Comparison)
 GetSimpleUI <- function(ui.name, obj.name, label, value) {
   if (ui.name == 'numeric') {
     return(numericInput(obj.name, label = label, value = value))
@@ -560,6 +628,8 @@ GetSimpleUI <- function(ui.name, obj.name, label, value) {
   }
 }
 
+# Takes a data frame containing the desired data and uses it to make
+# a plot of the Temperature for each nearby area.
 MakeTempPlot <- function(data) {
   bar.plot <- plot_ly(
     data,
@@ -588,6 +658,8 @@ MakeTempPlot <- function(data) {
   ggplotly(bar.plot)
 }
 
+# Takes a data frame containing the desired data and uses it to make
+# a plot of the Humidity for each nearby area.
 MakeHumidPlot <- function(data) {
   wind.plot <- plot_ly(
     data,
@@ -607,6 +679,8 @@ MakeHumidPlot <- function(data) {
   ggplotly(wind.plot)
 }
 
+# Takes a data frame containing the desired data and uses it to make
+# a plot of the Wind Speed for each nearby area.
 MakeWindPlot <- function(data) {
   wind.plot <- plot_ly(
     data,
@@ -626,6 +700,8 @@ MakeWindPlot <- function(data) {
   ggplotly(wind.plot)
 }
 
+# Creates a summary comparison paragraph if inputs aren't NULL based
+# on user inputs (cities, coordinates, zip codes)
 MakeReport <- function(city.one, city.two) {
   if (is.null(city.one) | is.null(city.two)) {
     return(NULL)
@@ -709,6 +785,8 @@ MakeReport <- function(city.one, city.two) {
 }
   }
 
+# Makes a bar graph with a single point of comparison used to compare the
+# two cities of interest
 MakeSinGraph <- function(cities.data, color1, color2, y.title, x.title) {
   city.graph <- plot_ly(
     cities.data,
@@ -725,6 +803,8 @@ MakeSinGraph <- function(cities.data, color1, color2, y.title, x.title) {
   return(city.graph)
 }
 
+# Makes a bar graph with multiples points of comparison used to compare the
+# two cities of interset
 MakeMultiGraph <- function(
   cities.data,
   color1,
@@ -752,6 +832,7 @@ MakeMultiGraph <- function(
       )
 }
 
+# Creates a data frame for use on a bar graph with a single point of comparison
 CreateSinChartDF <- function(
   q1 = NULL,
   q2 = NULL,
@@ -775,6 +856,7 @@ CreateSinChartDF <- function(
   }
 }
 
+# Creates a data frame for use on a bar graph with multiple points of comparison
 CreateMultiChartDF <- function(
   q1 = NULL,
   q2 = NULL,

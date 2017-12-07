@@ -1,4 +1,4 @@
-# file weather_data.R
+# File weather_data.R
 
 library(jsonlite)
 library(dplyr)
@@ -17,19 +17,26 @@ main.cities <- read.csv(
 
 len <- length(main.cities)
 
+# Takes in a string as a parameter and returns the  
+# date in the proper format
 AdjustTime <- function(str) {
   date <- as.POSIXct(str, origin="1970-01-01", tz="GMT") 
   return(strftime(date, format="%H:%M:%S"))
 }
 
+# Converts the temperature from kelvin to fahrenheit
 ConvertTemp <- function(tmp) {
   return(1.8 * (tmp - 273) + 32)
 }
 
+# Converts the temperature from celsiu to fahrenheit
 ConvertTempFromCelsius <- function(tmp) {
   return(1.8 * tmp + 32)
 }
 
+# Creates a data frame for the biggest fifty cities in
+# the United States, including multiple columns showing
+# current weather conditions
 CreateMainCitiesDF <- function(cities) {
   cities.df <- GetCityInfo(q = cities[1])
   for (i in 2:len) {
@@ -39,16 +46,22 @@ CreateMainCitiesDF <- function(cities) {
   return(cbind(cities, cities.df))
 }
 
+# Makes a GET request to the API and returns a
+# parsed object
 FetchResponse <- function(full.uri, params) {
   return(
     GET(full.uri, query = params) %>% content('text') %>% fromJSON()
   )
 }
 
+# Turns any NULL values in the data frame to "Unknown"
 FetchValue <- function(val) {
   return(ifelse(is.null(val), "Unknown", val))
 }
 
+# Uses the FetchResponse and ProcessResponse functions to create a 
+# data frame using the URL of the weather API. Contains multiple parameters
+# and users can use any one of the parameters to find the desires location.
 GetCityInfo <- function(q = NULL, lat = NULL, lon = NULL, zip = NULL) {
   base.uri <- "http://api.openweathermap.org/data/2.5/weather?"
   query.params <- list(APPID = weather.key)
@@ -74,6 +87,8 @@ GetCityInfo <- function(q = NULL, lat = NULL, lon = NULL, zip = NULL) {
   }
 }
 
+
+# Takes in a JSON response and returns a data frame
 ProcessResponse <- function(response) {
   return(data.frame(
     city = FetchValue(response$name),
@@ -100,6 +115,8 @@ ProcessResponse <- function(response) {
   ))
 }
 
+# Returns a data frame of the relevent information for the two inputed locations
+# that is used in the server to make the plots while comparing those cities. 
 CreateSinChartDF <- function(
   q1 = NULL,
   q2 = NULL,
@@ -118,6 +135,8 @@ CreateSinChartDF <- function(
   return(data.frame(cities, attr, stringsAsFactors = FALSE))
 }
 
+# Returns a data frame of the relevent information for the two inputed locations
+# that is used in the server to make the plots while comparing those cities. 
 CreateMultiChartDF <- function(
   q1 = NULL,
   q2 = NULL,
@@ -141,6 +160,8 @@ CreateMultiChartDF <- function(
   return(df)
 }
 
+# Uses the API request function to return a list of the weather attributes for a 
+# particular location.
 FetchRowCity <- function(q = NULL, lat = NULL, lon = NULL, zip = NULL, cols) {
   row <- GetCityInfo(q = q, lat = lat, lon = lon, zip = zip)
   city <- row$city
@@ -148,6 +169,9 @@ FetchRowCity <- function(q = NULL, lat = NULL, lon = NULL, zip = NULL, cols) {
   return(list(row = row, city = city))
 }
 
+# Takes in the data frame and a vector of column names as parameters 
+# and returns a final data frame created by adding the column names to
+# the data frame
 SelectCols <- function(data, cols) {
   df <- data[cols[1]]
   len <- length(cols)
@@ -159,6 +183,9 @@ SelectCols <- function(data, cols) {
   return(df)
 }
 
+# Uses the latitude and longitude inputted by the user in order to 
+# make a GET request to the API. Returns NULL if the latitude/longitude
+# entered is invalid.
 GetRegionInfo <- function(lat = NULL, lon = NULL) {
   base.url <- 'http://api.openweathermap.org/data/2.5/box/city?'
   range <- 3
@@ -191,6 +218,9 @@ GetRegionInfo <- function(lat = NULL, lon = NULL) {
   }
 }
 
+# Uses the CreateMaiCitiesDF function to create a data frame
+# Creates a list to check if the value is actually equal to the 
+# desired value
 main.cities.data <- CreateMainCitiesDF(main.cities)
 main.cities.list <- list()
 for (i in 1:len) {
