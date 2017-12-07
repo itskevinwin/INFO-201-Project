@@ -5,8 +5,6 @@ content <- "
 <style>
 li {
 font-family: 'Times', sans-serif;
-padding-top: 10px;
-padding-bottom: 10px;
 }
 </style>
 <h3>Table Of Contents</h3>
