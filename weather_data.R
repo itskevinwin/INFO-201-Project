@@ -11,7 +11,7 @@ source('./documentation.R')
 
 # Read in main_cities.csv file
 main.cities <- read.csv(
-  '../data/main_cities.csv',
+  './data/main_cities.csv',
   stringsAsFactors = FALSE
 ) %>% .[['main.cities']]
 
