@@ -5,8 +5,8 @@ account: neuricos
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 245758
-bundleId: 1120806
+bundleId: 1121738
 url: https://neuricos.shinyapps.io/info-201-project/
-when: 1512644623.54281
+when: 1512676148.78229
 asMultiple: FALSE
 asStatic: FALSE

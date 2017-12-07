@@ -567,20 +567,21 @@ Cap <- function(str) {
 }
 
 # Sets the color of different weather types for use on map points
-GetColor <- function(data) {
-  sapply(data$weather, function(weather) {
-    return(case_when(
-      weather == 'Rain' ~ "blue",
-      weather == 'Clouds' ~ "purple",
-      weather == 'Clear' ~ "green",
-      weather == 'Smoke' ~ "orange",
-      weather == 'Drizzle' ~ "cyan",
-      weather == "Mist" ~ "grey",
-      weather == "Snow" ~ "white",
-      weather == "Thunderstorm" ~ "black",
-      TRUE ~ "yellow"
-    ))
-  })
+GetColor <- function(weather) {
+  unname(sapply(weather, function(weather) {
+    switch(
+      weather,
+      Rain = "blue",
+      Clouds = "purple",
+      Clear = "green",
+      Smoke = "orange",
+      Drizzle = "pink",
+      Mist = "cadetblue",
+      Snow = "white",
+      Thunderstorm = "black",
+      "beige"
+    )
+  }))
 }
 
 # Creates an interactive map to use for tab 1
@@ -589,7 +590,7 @@ FetchMap <- function(data) {
     icon = 'ios-close',
     iconColor = 'black',
     library = 'ion',
-    markerColor = GetColor(data)
+    markerColor = GetColor(data$weather)
   )
   return(
     leaflet(data) %>%
@@ -722,11 +723,11 @@ MakeReport <- function(city.one, city.two) {
       city.one$country,
       " and ",
       city.two$country,
-      ", shows us that the current weather within the first location is ",
+      ", we know that the current weather within the first location is ",
       city.one$description,
       " while ",
       city.two$description,
-      " in city two. The time is currently ", 
+      " in the second location. The time is currently ", 
       city.one$time,
       " in ",
       city.one[1, 1],
@@ -752,9 +753,9 @@ MakeReport <- function(city.one, city.two) {
       round(city.two$temp.min),
       " degrees Farenheit. A current wind speed of ", 
       city.one$wind.speed,
-      " meters per second is repored in the first location and a wind speed of ", 
+      " meters per second is repored in the the former and a wind speed of ", 
       city.two$wind.speed,
-      " meters per second in the other. Sunrise will be at ", 
+      " meters per second in the latter. Sunrise will be at ", 
       city.two$sunrise,
       " tomorrow morning and sunset is reported to be at ", 
       city.two$sunset,
