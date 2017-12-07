@@ -85,7 +85,7 @@ shinyUI(navbarPage(
     ),
     tabPanel(
       "REGION",
-      titlePanel("Weather Conditions In Rectangle Region"),
+      titlePanel("Weather Conditions In Rectangular Zone"),
       sidebarLayout(
         sidebarPanel(
           selectInput(
